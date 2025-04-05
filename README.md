@@ -123,7 +123,7 @@ All hyperparameters live in `.default.yaml`. Key sections:
 
 ## 📄 License
 
-This project is Apache 2.0‑licensed. See `LICENSE` for details.
+This project is MIT Licensed. See `LICENSE` for details.
 
 ---
 
