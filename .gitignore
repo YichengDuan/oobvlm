@@ -9,3 +9,5 @@ habitat-sim
 habitat-lab
 
 
+*/__pycache__/
+__pycache__

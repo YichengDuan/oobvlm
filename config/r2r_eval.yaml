@@ -1,0 +1,29 @@
+defaults:
+  - /habitat: habitat_config_base
+  - /habitat/dataset: dataset_config_schema
+  - /habitat/task: vln_r2r
+  - /habitat/simulator/sensor_setups@habitat.simulator.agents.main_agent: rgbd_agent
+  - _self_
+
+habitat:
+  environment:
+    max_episode_steps: 50
+
+  simulator:
+    agents:
+      main_agent:
+        sim_sensors:
+          rgb_sensor:
+            width: 256
+            height: 256
+            hfov: 90
+            type: HabitatSimRGBSensor
+
+    forward_step_size: 0.25
+    turn_angle: 15
+    
+  dataset:
+    type: R2RVLN-v1
+    split: val_useen
+    data_path: "data/datasets/vln/mp3d/r2r/v1/{split}/{split}.json.gz"
+    scenes_dir: "data/scene_datasets/mp3d/"
