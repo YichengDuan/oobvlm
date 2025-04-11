@@ -15,13 +15,12 @@ import habitat
 
 from habitat.sims.habitat_simulator.actions import HabitatSimActions
 from habitat.utils.visualizations.utils import (
-    append_text_underneath_image,
     images_to_video,
 )
 
+from util import save_map
 
-# === 你自己的 VLM agent ===
-# from agent.qwen_vl_agent import QwenVLAgent
+from agent.qwen_vl_agent import QwenVLAgent
 # from qwen_dummy import load_qwen_vl
 
 # 动作映射表
@@ -46,22 +45,22 @@ agent_specs = {
             "turn_angle": 15
         }
 
-def vlm_agent_benchmark(config, num_episodes=None):
+def vlm_agent_benchmark(config, num_episodes=None, save_video=False):
     """
     用 Qwen2.5-VL 执行 R2R 导航任务并评估。
     """
-    
-    # model = load_qwen_vl()
-    # agent = QwenVLAgent(model)
+    results_dirname = "./results/"
+    # agent = QwenVLAgent()
 
     with habitat.Env(config=config) as env:
         if num_episodes is None:
             num_episodes = len(env.episodes)
 
         all_metrics = []
-
+        
         for ep in range(num_episodes):
             obs = env.reset()
+            images = []
             instruction = obs["instruction"]
             instruction_text = instruction["text"]
             done = False
@@ -78,13 +77,23 @@ def vlm_agent_benchmark(config, num_episodes=None):
                 action = action_map.get(action_str, HabitatSimActions.stop)
                  
                 obs = env.step(action)
+                
+                if env.episode_over or action == HabitatSimActions.stop:
+                    done = True
 
-                done = env.episode_over
+                if save_video:
+                    save_map(obs,info=env.get_metrics(), images=images)
+
                 steps += 1
 
             metrics = env.get_metrics()
+            metrics = {k: metrics.get(k, None) for k in ('distance_to_goal', 'success', 'spl')}
             all_metrics.append(metrics)
-            print(f"[Episode {episode_id}] Metrics: {metrics}")
+            print(f"Episode {episode_id} metrics: {metrics}")
+
+            if metrics["success"] == 1 and save_video:
+                print(f"Episode {episode_id} success!")
+                images_to_video(images, results_dirname, str(episode_id))
 
     # average metrics
     agg = defaultdict(float)
@@ -110,8 +119,6 @@ def main():
         help="How many episodes to evaluate"
     )
     args = parser.parse_args()
-  
-    print(LAB_CONFIG)
 
     metrics = vlm_agent_benchmark(LAB_CONFIG, num_episodes=args.num_episodes)
 

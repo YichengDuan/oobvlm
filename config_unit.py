@@ -1,5 +1,11 @@
 import yaml
 from habitat.config.default import get_config
+import habitat
+
+from habitat.config.default_structured_configs import (
+    HeadingSensorConfig,
+    TopDownMapMeasurementConfig,
+)
 
 CONFIG_FILE_PATH = './local.yaml'
 
@@ -27,3 +33,11 @@ od = [f'habitat.dataset.data_path={R2R_DATASET_PATH}',
      f'habitat.task.measurements.success.success_distance={SUCCESS_DISTANCE}',]
 
 LAB_CONFIG = get_config(f"config/{EVAL_CONFIG_FILE}",overrides=od)
+
+with habitat.config.read_write(LAB_CONFIG):
+    LAB_CONFIG.habitat.task.measurements.update(
+        {"top_down_map": TopDownMapMeasurementConfig()}
+    )
+    LAB_CONFIG.habitat.task.lab_sensors.update(
+        {"heading_sensor": HeadingSensorConfig()}
+    )
