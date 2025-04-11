@@ -1,6 +1,6 @@
 from transformers import Qwen2_5_VLForConditionalGeneration, AutoTokenizer, AutoProcessor
 from qwen_vl_utils import process_vision_info
-
+import torch
 # default: Load the model on the available device(s)
 model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
     "./model/Qwen2.5-VL-3B-Instruct", torch_dtype="auto", device_map="auto"
@@ -61,14 +61,67 @@ output_text = processor.batch_decode(
 print(output_text)
 
 
+class NavHistory(object):
+    def __init__(self, history_window=5):
+        self.history = []
+        self.history_window = history_window
+
+    def add(self, message):
+        self.history.append(message)
+
+    def current_heistory_length(self):
+        return len(self.history)
+
+    def retrieve(self):
+        if len(self.history) > self.history_window:
+            return self.history[-self.history_window:]
+        return self.history
+        
+    def get_history(self):
+        return self.history
+    
+    def clear(self):
+        self.history = []
+
 class QwenVLAgent(object):
-    def __init__(self):
+    def __init__(self, nav_graph=None, vision_interpreter=None, min_pixels=256*28*28, max_pixels=640*28*28, agent_specs=None):
+        self.nav_graph = nav_graph
+        self.vision_interpreter = vision_interpreter
+        self.min_pixels = min_pixels
+        self.max_pixels = max_pixels
+        self.device = "mps" if torch.backends.mps.is_available() else "cuda" if torch.cuda.is_available() else "cpu" 
         self.model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
-            "./model/Qwen2.5-VL-3B-Instruct", torch_dtype="auto", device_map="auto"
+            "./model/Qwen2.5-VL-3B-Instruct", torch_dtype="auto", device_map=self.device
         )
         self.processor = AutoProcessor.from_pretrained(
             "./model/Qwen2.5-VL-3B-Instruct", min_pixels=min_pixels, max_pixels=max_pixels
         )
+        
+        self.agent_specs = {
+            "action_space": ["move_left", "move_front", "move_back", "move_right"],
+            "forward_step_size": 0.25,
+            "turn_angle": 15
+        }
+        self.history = NavHistory(history_window=5)
+        self.master_instruction = None
+
+    def history_management(self, messages):
+        # manage the history of messages for agent movement in the environment
+
+        return
+
+    def prompt_builder(self, image, last_action, master_instruction):
+        # build the prompt for the agent based on the messages
+
+        return messages
+    
+    def get_action(self, image, instruction):
+        action = None
+        # get the action from the agent based on the messages
+        # The action should be one of the actions in the action space
+
+        return action
+
 
     def generate(self, messages):
         text = self.processor.apply_chat_template(
@@ -82,7 +135,7 @@ class QwenVLAgent(object):
             padding=True,
             return_tensors="pt",
         )
-        inputs = inputs.to("mps")
+        inputs = inputs.to(self.device)
 
         # Inference: Generation of the output
         generated_ids = self.model.generate(**inputs, max_new_tokens=128)
