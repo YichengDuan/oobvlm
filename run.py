@@ -75,19 +75,19 @@ def vlm_agent_benchmark(config, num_episodes=None, save_video=False):
                 # action_str = agent.get_action(instruction, rgb)
                 action_str = "move_forward"  # 这里使用一个固定的动作作为示例
                 action = action_map.get(action_str, HabitatSimActions.stop)
-                 
+                
                 obs = env.step(action)
                 
                 if env.episode_over or action == HabitatSimActions.stop:
                     done = True
-
+                
                 if save_video:
                     save_map(obs,info=env.get_metrics(), images=images)
 
                 steps += 1
 
             metrics = env.get_metrics()
-            metrics = {k: metrics.get(k, None) for k in ('distance_to_goal', 'success', 'spl')}
+            metrics.pop("top_down_map")
             all_metrics.append(metrics)
             print(f"Episode {episode_id} metrics: {metrics}")
 

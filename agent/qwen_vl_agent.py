@@ -77,7 +77,7 @@ class QwenVLAgent(object):
 
     def history_management(self, messages):
         # manage the history of messages for agent movement in the environment
-
+        
         return
 
     def prompt_builder(self, image, last_action, master_instruction):
