@@ -2,31 +2,6 @@ from transformers import Qwen2_5_VLForConditionalGeneration, AutoTokenizer, Auto
 from qwen_vl_utils import process_vision_info
 import torch
 
-# We recommend enabling flash_attention_2 for better acceleration and memory saving, especially in multi-image and video scenarios.
-# model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
-#     "Qwen/Qwen2.5-VL-3B-Instruct",
-#     torch_dtype=torch.bfloat16,
-#     attn_implementation="flash_attention_2",
-#     device_map="auto",
-# )
-
-# default processer
-# processor = AutoProcessor.from_pretrained("./model/Qwen2.5-VL-3B-Instruct")
-
-
-messages = [
-    {
-        "role": "user",
-        "content": [
-            {
-                "type": "image",
-                "image": "https://qianwen-res.oss-cn-beijing.aliyuncs.com/Qwen-VL/assets/demo.jpeg",
-            },
-            {"type": "text", "text": "You are a robot. You see an FPV image form your head. You want to navigate youself to the dog position, what do you do next? Only return the option form ['move_left','move_front','move_back','move_right']"},
-        ],
-    }
-]
-
 class NavHistory(object):
     def __init__(self, history_window=5):
         self.history = []
@@ -43,7 +18,7 @@ class NavHistory(object):
             return self.history[-self.history_window:]
         return self.history
         
-    def get_history(self):
+    def get_all_history(self):
         return self.history
     
     def clear(self):
@@ -73,22 +48,42 @@ class QwenVLAgent(object):
                 "turn_angle": 15
             }
         self.history = NavHistory(history_window=5)
-        self.master_instruction = None
+        self.last_master_instruction = None
 
     def history_management(self, messages):
         # manage the history of messages for agent movement in the environment
-        
+
         return
 
-    def prompt_builder(self, image, last_action, master_instruction):
+    def prompt_builder(self, image, history, master_instruction):
         # build the prompt for the agent based on the messages
+        messages = [
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "image",
+                        "image": "https://qianwen-res.oss-cn-beijing.aliyuncs.com/Qwen-VL/assets/demo.jpeg",
+                    },
+                    {"type": "text", "text": "You are a robot. You see an FPV image form your head. You want to navigate youself to the dog position, what do you do next? Only return the option form ['move_left','move_front','move_back','move_right']"},
+                ],
+            }
+        ]
 
         return messages
     
     def get_action(self, image, instruction):
-        action = None
         # get the action from the agent based on the messages
         # The action should be one of the actions in the action space
+        action = None
+        if not self.last_master_instruction:
+            self.last_master_instruction = instruction
+        if self.last_master_instruction != instruction:
+            self.history.clear()
+            self.last_master_instruction = instruction
+    
+        self.prompt_builder(self, image, self.history, instruction)
+        
 
         return action
 
