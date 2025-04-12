@@ -18,7 +18,7 @@ from habitat.utils.visualizations.utils import (
     images_to_video,
 )
 
-from util import save_map
+from util import save_map,rgb_to_base64
 
 from agent.qwen_vl_agent import QwenVLAgent
 # from qwen_dummy import load_qwen_vl
@@ -69,10 +69,11 @@ def vlm_agent_benchmark(config, num_episodes=None, save_video=False):
             print(f"Episode {episode_id} instruction: {instruction_text}")
             while not done and steps < config.habitat.environment.max_episode_steps:
                 rgb = obs["rgb"]
+                img_str = rgb_to_base64(rgb)
                 # visualization
                 cv2.imshow("rgb", rgb)
                 cv2.waitKey(1)
-                # action_str = agent.get_action(instruction, rgb)
+                # action_str = agent.get_action(instruction, img_str)
                 action_str = "move_forward"  # 这里使用一个固定的动作作为示例
                 action = action_map.get(action_str, HabitatSimActions.stop)
                 

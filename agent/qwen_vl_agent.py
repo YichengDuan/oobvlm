@@ -57,6 +57,7 @@ class QwenVLAgent(object):
 
     def prompt_builder(self, image, history, master_instruction):
         # build the prompt for the agent based on the messages
+        
         messages = [
             {
                 "role": "user",
@@ -69,6 +70,18 @@ class QwenVLAgent(object):
                 ],
             }
         ]
+
+        if self.nav_graph:
+            # get the nav graph from the nav graph module
+
+            pass
+        elif self.vision_interpreter:
+            # get the vision interpreter from the vision interpreter module
+
+            pass
+        else:
+            # build the prompt based on the image and master instruction
+            pass
 
         return messages
     
