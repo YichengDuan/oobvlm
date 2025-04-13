@@ -8,6 +8,7 @@ data/scene_datasets
 habitat-sim
 habitat-lab
 
+results/*.mp4
 
 */__pycache__/
 __pycache__

@@ -36,7 +36,7 @@ action_map = {
     "move_forward": HabitatSimActions.move_forward,
     "turn_left": HabitatSimActions.turn_left,
     "turn_right": HabitatSimActions.turn_right,
-    "stop": HabitatSimActions.stop,
+    "stop_stop": HabitatSimActions.stop,
 }
 
 agent_specs = {
@@ -50,7 +50,7 @@ def vlm_agent_benchmark(config, num_episodes=None, save_video=False):
     用 Qwen2.5-VL 执行 R2R 导航任务并评估。
     """
     results_dirname = "./results/"
-    # agent = QwenVLAgent()
+    agent = QwenVLAgent(agent_specs=agent_specs)
 
     with habitat.Env(config=config) as env:
         if num_episodes is None:
@@ -73,8 +73,8 @@ def vlm_agent_benchmark(config, num_episodes=None, save_video=False):
                 # visualization
                 cv2.imshow("rgb", rgb)
                 cv2.waitKey(1)
-                # action_str = agent.get_action(instruction, img_str)
-                action_str = "move_forward"  # 这里使用一个固定的动作作为示例
+                action_str = agent.get_action(img_str=img_str,instruction=instruction)
+                print(f"Episode {episode_id} action: {action_str}")
                 action = action_map.get(action_str, HabitatSimActions.stop)
                 
                 obs = env.step(action)
@@ -92,7 +92,7 @@ def vlm_agent_benchmark(config, num_episodes=None, save_video=False):
             all_metrics.append(metrics)
             print(f"Episode {episode_id} metrics: {metrics}")
 
-            if metrics["success"] == 1 and save_video:
+            if save_video:
                 print(f"Episode {episode_id} success!")
                 images_to_video(images, results_dirname, str(episode_id))
 
@@ -121,7 +121,7 @@ def main():
     )
     args = parser.parse_args()
 
-    metrics = vlm_agent_benchmark(LAB_CONFIG, num_episodes=args.num_episodes)
+    metrics = vlm_agent_benchmark(LAB_CONFIG, num_episodes=args.num_episodes, save_video=True)
 
     print("Benchmark for Qwen2.5-VL agent:")
     for k, v in metrics.items():

@@ -14,9 +14,9 @@ habitat:
       main_agent:
         sim_sensors:
           rgb_sensor:
-            width: 256
-            height: 256
-            hfov: 90
+            width: 640
+            height: 480
+            hfov: 120
             type: HabitatSimRGBSensor
 
     forward_step_size: 0.25
