@@ -6,6 +6,7 @@ from transformers import (
 from qwen_vl_utils import process_vision_info
 import torch
 import json
+import gc
 import os
 os.environ['TOKENIZERS_PARALLELISM'] = 'false'
 
@@ -100,7 +101,7 @@ class QwenVLAgent(object):
                             f"You can move in one directions: forward {self.agent_specs['forward_step_size']}m also can turn left {self.agent_specs['turn_angle']} degree and right {self.agent_specs['turn_angle']} degree. "
                             "You can also stop. "
                             f"You action space is: {self.agent_specs['action_space']}."
-                            "You can only stop when you think you finished the task discribed by the master instruction"
+                            "You can only stop when you think you finished ALL task discribed by the master instruction"
                             "BE COURAGE !!!!, MOVE FORWARD FIRST TO EXPLOR THE WORLD !!!!"
                             "FISRT TURN YOUR HEAD TO SEE the path YOU need to walk, THEN MOVE FORWARD TO THE TARGET."
                             "IF NO VISIBLE PATH IN FRONT OF YOU, JUST MOVE FORWARD TO EXPLORE THE WORLD!!!!"
@@ -215,4 +216,11 @@ class QwenVLAgent(object):
             skip_special_tokens=True,
             clean_up_tokenization_spaces=False,
         )
+        # clear cache
+        gc.collect()
+        if self.device == "mps":
+            torch.mps.empty_cache()
+        elif self.device == "cuda":
+            torch.cuda.empty_cache()
+        
         return output_text
