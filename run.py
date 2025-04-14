@@ -16,6 +16,7 @@ import habitat
 from habitat.sims.habitat_simulator.actions import HabitatSimActions
 from habitat.utils.visualizations.utils import (
     images_to_video,
+    observations_to_image,
 )
 
 from util import save_map,rgb_to_base64,depth_to_base64
@@ -44,6 +45,72 @@ agent_specs = {
             "forward_step_size": 0.25,
             "turn_angle": 15
         }
+# -------------------------------
+# Helper functions for ray-casting and overlay
+# -------------------------------
+
+def compute_possible_path(env:habitat.Env, num_rays=9, max_distance=5.0):
+    """
+    Uses ray-casting from the agent's current position to find candidate waypoints.
+    Returns a list of 3D candidate endpoints in world coordinates.
+    """
+    agent_state = env.sim.get_agent_state()  # Get agent state from simulator
+    origin = np.array(agent_state.position)   # Agent's current position
+    print(agent_state)
+    # Get the forward direction of the agent
+    forward_vector = agent_state.rotation[:, 0]
+                    
+    candidate_endpoints = []
+    # Cast rays in a span from -45° to +45° relative to forward direction
+    angles = np.linspace(-np.pi / 4, np.pi / 4, num_rays)
+    for angle in angles:
+        # Create a rotation about the Y axis (up)
+        cos_a, sin_a = np.cos(angle), np.sin(angle)
+        rot_matrix = np.array([
+            [cos_a, 0, -sin_a],
+            [0,     1,  0],
+            [sin_a, 0,  cos_a]
+        ])
+        direction = rot_matrix.dot(forward_vector)
+        # Cast a ray: the API may differ; here we assume sim.cast_ray returns a hit object.
+        hit = env.sim.cast_ray(origin, direction, max_distance)
+        if hit.hit_fraction < 1.0:
+            endpoint = origin + direction * (max_distance * hit.hit_fraction)
+        else:
+            endpoint = origin + direction * max_distance
+        candidate_endpoints.append(endpoint)
+    return candidate_endpoints
+
+def project_to_image(point, camera_intrinsics, camera_pose):
+    """
+    Project a 3D world point into 2D image coordinates.
+    This is a placeholder: implement using your camera model (intrinsics & extrinsics).
+    For demonstration, we simply perform a scaled projection.
+    """
+    # For instance, assume a pinhole model and that the camera_pose is known.
+    # Here we use a simplified dummy projection:
+    x, y, z = point
+    # Avoid division by zero:
+    if z == 0:
+        z = 1e-5
+    u = int(500 * x / z + 320)  # fx=500, cx=320 as dummy values
+    v = int(500 * y / z + 240)  # fy=500, cy=240 as dummy values
+    return (u, v)
+
+def overlay_possible_path(rgb, candidate_points, camera_intrinsics, camera_pose):
+    """
+    Draws the candidate path (list of 3D points) on the rgb image by projecting them to image space.
+    """
+    overlay_img = rgb.copy()
+    # Project candidate endpoints to image plane
+    pixel_points = [project_to_image(p, camera_intrinsics, camera_pose) for p in candidate_points]
+    # Draw lines between consecutive candidate points
+    for i in range(len(pixel_points) - 1):
+        cv2.line(overlay_img, pixel_points[i], pixel_points[i+1], (0, 0, 255), thickness=2)
+    # Optionally, draw circles at candidate points
+    for pt in pixel_points:
+        cv2.circle(overlay_img, pt, radius=3, color=(0, 255, 0), thickness=-1)
+    return overlay_img
 
 def vlm_agent_benchmark(config, num_episodes=None, save_video=False):
     """
@@ -57,7 +124,11 @@ def vlm_agent_benchmark(config, num_episodes=None, save_video=False):
             num_episodes = len(env.episodes)
 
         all_metrics = []
-        
+         # Dummy camera parameters for projection – replace with your actual values.
+        camera_intrinsics = np.array([[500, 0, 320],
+                                      [0, 500, 240],
+                                      [0, 0, 1]])
+        camera_pose = None  # Replace with proper camera extrinsics if available.
         for ep in range(num_episodes):
             obs = env.reset()
             images = []
@@ -72,19 +143,30 @@ def vlm_agent_benchmark(config, num_episodes=None, save_video=False):
                 img_str = rgb_to_base64(rgb)
                 depth = obs["depth"]
                 depth_str = depth_to_base64(depth)
-                # semantic = obs["semantic"]
-                
-                
-                # visualization
+                # # semantic = obs["semantic"]
+                # # --- Compute a possible path using ray-casting ---
+                # candidate_path = compute_possible_path(env, num_rays=9, max_distance=5.0)
+
+                # # Overlay the candidate path on the RGB image.
+                # # (Make sure to substitute real camera parameters if available.)
+                # rgb_with_path = overlay_possible_path(rgb, candidate_path, camera_intrinsics, camera_pose)
+
+                # For visualization: show the rgb image with candidate path overlaid.
+                # cv2.imshow("rgb_with_possible_path", rgb_with_path)
+                # cv2.waitKey(1)
+                # # visualization
                 cv2.imshow("rgb", rgb)
                 cv2.waitKey(1)
                 
                 action_str = agent.get_action(img_str=img_str,instruction=instruction)
                 print(f"Episode {episode_id} action: {action_str}")
+                # action_str = "move_forward"
                 action = action_map.get(action_str, HabitatSimActions.stop)
                 
                 obs = env.step(action)
                 
+
+
                 if env.episode_over or action == HabitatSimActions.stop:
                     done = True
                 

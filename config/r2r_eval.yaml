@@ -14,18 +14,18 @@ habitat:
       main_agent:
         sim_sensors:
           rgb_sensor:
-            width: 480
-            height: 270
+            width: 256
+            height: 256
             hfov: 120
             type: HabitatSimRGBSensor
           depth_sensor:
-            width: 480
-            height: 270
+            width: 256
+            height: 256
             hfov: 120
             type: HabitatSimDepthSensor
           semantic_sensor:
-            width: 480
-            height: 270
+            width: 256
+            height: 256
             hfov: 120
             type: HabitatSimSemanticSensor
 
