@@ -30,3 +30,25 @@ def rgb_to_base64(rgb_image):
     im.save(buffered, format="JPEG")
     img_str = base64.b64encode(buffered.getvalue()).decode()
     return img_str
+
+def depth_to_base64(depth_image):
+    """
+    Convert a depth image to base64 string.
+    """
+
+    if depth_image.ndim == 3 and depth_image.shape[-1] == 1:
+        depth_image = np.squeeze(depth_image, axis=-1)
+    
+
+    depth_min = np.min(depth_image)
+    depth_max = np.max(depth_image)
+    norm_depth = (depth_image - depth_min) / (depth_max - depth_min + 1e-8)
+    
+   
+    depth_uint8 = (norm_depth * 255).astype(np.uint8)
+
+    buffered = BytesIO()
+    im = Image.fromarray(depth_uint8,mode="L")
+    im.save(buffered, format="JPEG")
+    img_str = base64.b64encode(buffered.getvalue()).decode()
+    return img_str

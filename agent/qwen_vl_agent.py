@@ -5,7 +5,9 @@ from transformers import (
 )
 from qwen_vl_utils import process_vision_info
 import torch
-
+import json
+import os
+os.environ['TOKENIZERS_PARALLELISM'] = 'false'
 
 class NavHistory(object):
     def __init__(self, history_window=5):
@@ -80,7 +82,7 @@ class QwenVLAgent(object):
 
         return
 
-    def prompt_builder(self, img_str, history:NavHistory, master_instruction):
+    def prompt_builder(self, img_str,history:NavHistory, master_instruction):
         # build the prompt for the agent based on the messages
 
         messages = [
@@ -90,25 +92,25 @@ class QwenVLAgent(object):
                     {
                         "type": "text",
                         "text": (
-                            "You are a robot for navigation task. You have a FOV 120 degree camera on your head."
-                            "You can see the world in front of you."
-                            f"You have a master instruction now is: {master_instruction}."
-                            f"You can move in one directions: forward {self.agent_specs['forward_step_size']}m "
-                            f"You can also turn left {self.agent_specs['turn_angle']} degree and right {self.agent_specs['turn_angle']} degree. "
+                            f"You are a robot for navigation task. You have a FOV 120 degree camera on your head."
+                            "You can see the world in front of you. You have to understand the 3D structure based on the image you see."
+                            f"You have one a master instruction: {master_instruction}."
+                            f"You can move in one directions: forward {self.agent_specs['forward_step_size']}m also can turn left {self.agent_specs['turn_angle']} degree and right {self.agent_specs['turn_angle']} degree. "
                             "You can also stop. "
                             f"You action space is: {self.agent_specs['action_space']}."
-                            "Think before you act. walk like a human. constently reflect on your actions."
-                            "When you think you finished the task discribed by the master instruction, you need stop"
-                            "You need to make an high level plan first, like a human. for example, you need to check the door first, then go to the door, then go through the door."
-                            "If you see an door need to check, you need go to check the door first."
-                            "If you cannot see the target you want to see, you need to turn left or turn right couple of time to find your goal first."
-                            "If you cannot see the target you want to see directly, the goal may on your back side turn around and check the back side first."
-                            "If you want to see both side, you need to turn left first couple of times then turn right couple of times."
+                            "Think like a human: Before you act, form a high-level plan by observing your surroundings and reflecting on your previous actions. "
+                            "You can only stop when you think you finished the task discribed by the master instruction"
+                            "DO NOT MAKE ANY ASSUMPTIONS ABOUT THE WORLD, ONLY BASE YOUR DECISION ON THE CURRENT IMAGE AND YOUR PAST EXPERIENCE."
+                            "The goal position of your master instruction may not in the same room with you"
+                            "If you see an DOOR need to check, you need plan an way to check the door First"
                             "If you see an obstacle in front of you, you can tern left or turn right, then go forward to pass the obstacle."
-                            "If you feel stuck: mutiple same early actions in history without different reflections, you neet turn left or turn right to find the right path you can walk!!!!, then go forward, then repeat."
-                            "If your early action contains looking an direction, after you trun to other direction for passing the obstacle, you need to turn back to the direction you want to look at."
-                            f"You have Your last {history.history_window} History Summary:"
-                            f"History: {history.retrieve()}"
+                            "FISRT ADJUST YOUR HEAD TO SEE the path YOU need to walk, THEN MOVE FORWARD TO THE TARGET."
+                            "YOU NEED TO BALLANCE TURN LEFT AND TURN RIGHT, DO NOT TURN LEFT OR TURN RIGHT TOO MUCH."
+                            "Be courage, Move forward to the target, do not be afraid of the obstacles in front of you."
+                            "If you cannot see the target you want to see, you need to turn left or turn right couple of time to find your goal first, then move forward to the goal."
+                            "If you cannot see the target you want to see directly, the goal may on your back side turn around and check the back side first, "
+                            f"Last {history.history_window} steps you have done are: "
+                            f"{history.retrieve()}"
                         ),
                     }
                 ],
@@ -119,10 +121,19 @@ class QwenVLAgent(object):
                     {
                         "type": "image",
                         "image": f"data:image;base64,{img_str}",
+                        
                     },
                     {
                         "type": "text",
-                        "text": f"You see an FPV image form your head at current state. Your last reflection on your act is {history.get_last_reflection()}. You want to finish the task discribed by the master instruction, what do you do for next new action?. Only respond with one action name from your action space and one sentience reflection what your current state are, things you want to find and what you will do next 4 step, split by ':'.",
+                        "text": (
+                            "You see one FPV image form your head at current state. Based on the current visual input and your history, decide your next action. "
+                            "Respond with a different reflection form last on your current state, what you are looking for, and your next plan, do you find the last plan goal? And one action name from your action space for your current state. "
+                            
+                            "Respond in json format. Do not include \n !!!"
+                            """{"reflection": "your reflection", "action": "your action name"}"""
+
+                            
+                        ),
                     },
                 ],
             },
@@ -157,8 +168,12 @@ class QwenVLAgent(object):
         )
         act_str = self.generate(messages)
         print("act_str", act_str)
-        action = act_str[0].split(":")[0].strip()
-        reflection = act_str[0].split(":")[1].strip()
+        act_str = json.loads(act_str[0])
+        action = act_str.get("action", None)
+        reflection = act_str.get("reflection", None)
+
+        # action = act_str[0].split(":")[1].strip()
+        # reflection = act_str[0].split(":")[0].strip()
         self.history.add(
             {   
                 "step": self.history.current_heistory_length(),

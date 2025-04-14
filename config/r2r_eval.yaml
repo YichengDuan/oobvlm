@@ -14,16 +14,26 @@ habitat:
       main_agent:
         sim_sensors:
           rgb_sensor:
-            width: 640
-            height: 480
+            width: 480
+            height: 270
             hfov: 120
             type: HabitatSimRGBSensor
+          depth_sensor:
+            width: 480
+            height: 270
+            hfov: 120
+            type: HabitatSimDepthSensor
+          semantic_sensor:
+            width: 480
+            height: 270
+            hfov: 120
+            type: HabitatSimSemanticSensor
 
     forward_step_size: 0.25
     turn_angle: 15
     
   dataset:
     type: R2RVLN-v1
-    split: val_useen
+    split: val_unseen
     data_path: "data/datasets/vln/mp3d/r2r/v1/{split}/{split}.json.gz"
     scenes_dir: "data/scene_datasets/mp3d/"

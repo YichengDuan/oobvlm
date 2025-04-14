@@ -2,7 +2,7 @@ data/.DS_Store
 local.yaml
 .idea
 model/
-
+.DS_Store
 data/scene_datasets
 
 habitat-sim

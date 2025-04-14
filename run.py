@@ -5,7 +5,7 @@ import cv2
 import json
 from config_unit import LAB_CONFIG
 
-
+import numpy as np
 import argparse
 import json
 from collections import defaultdict
@@ -18,7 +18,7 @@ from habitat.utils.visualizations.utils import (
     images_to_video,
 )
 
-from util import save_map,rgb_to_base64
+from util import save_map,rgb_to_base64,depth_to_base64
 
 from agent.qwen_vl_agent import QwenVLAgent
 # from qwen_dummy import load_qwen_vl
@@ -70,9 +70,15 @@ def vlm_agent_benchmark(config, num_episodes=None, save_video=False):
             while not done and steps < config.habitat.environment.max_episode_steps:
                 rgb = obs["rgb"]
                 img_str = rgb_to_base64(rgb)
+                depth = obs["depth"]
+                depth_str = depth_to_base64(depth)
+                # semantic = obs["semantic"]
+                
+                
                 # visualization
                 cv2.imshow("rgb", rgb)
                 cv2.waitKey(1)
+                
                 action_str = agent.get_action(img_str=img_str,instruction=instruction)
                 print(f"Episode {episode_id} action: {action_str}")
                 action = action_map.get(action_str, HabitatSimActions.stop)
@@ -116,7 +122,7 @@ def main():
     parser.add_argument(
         "--num-episodes",
         type=int,
-        default=10,
+        default=20,
         help="How many episodes to evaluate"
     )
     args = parser.parse_args()
