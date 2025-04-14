@@ -95,6 +95,7 @@ class QwenVLAgent(object):
                             f"You are a planning robot for navigation task. You have a FOV 120 degree camera on your head."
                             "You see one FPV image form your head at current state. Based on the current visual input and your history, decide your next action. "
                             "You can see the world in front of you. You have to understand the 3D structure based on the image you see."
+                            "In your world, all doors are open."
                             f"You have one a master instruction: {master_instruction}."
                             f"You can move in one directions: forward {self.agent_specs['forward_step_size']}m also can turn left {self.agent_specs['turn_angle']} degree and right {self.agent_specs['turn_angle']} degree. "
                             "You can also stop. "
@@ -110,10 +111,7 @@ class QwenVLAgent(object):
                             "If you see an Path in front of you, you can go forward in the path."
                             "If you cannot see the target you want to see, you need to turn left or turn right couple of time to find your goal first, then move forward to the goal. also, the goal may on your back side turn around and check the back side first"
                             f"Last {history.history_window} steps you have done are: "
-                            f"{history.retrieve()}"
-                            "Provide your answer as a JSON object with exactly two keys: \"action\" and \"reflection\""
-                            
-                            
+                            f"{history.retrieve()}"    
                         ),
                     }
                 ],
@@ -129,13 +127,15 @@ class QwenVLAgent(object):
                     {
                         "type": "text",
                         "text": (
-                            f"Respond with a different reflection on your current state, what do you see?"
-                            "What part of the master instruction have you done? Any obstacles? How to pass them? Your next plan? Do you achiece the reflection plan goal? If not, what should you do? And one action name pick from your (action space) for your current state. "  
-                            f"Your last reflection was: '{history.get_last_reflection()}'. "
-                            "Respond in JSON format without any newline characters. Your JSON object must have exactly two keys: \"action\" and \"reflection\". "
-                            "your response MUST look like this: "
-                            "{\"action\": \"Your action name\", \"reflection\": \"Your reflection\"}"
-                            "Do not include any newline characters in your response."
+                            "You see one FPV image form your head at current state. Based on the current visual input and your history, decide your next action. "
+                            f"Your last reflection was: ['{history.get_last_reflection()}']. "
+                            f"Respond with a summary reflection base on your current state and history, what do you see?"
+                            "What part of the master instruction have you done? Any obstacles? How to pass them? Your next plan?  And one action name pick from your (action space) for your current state. "  
+                            "Do you achiece the reflection plan goal? If not, what should you do?"
+                            # "Provide your answer as a JSON object with exactly two keys: \"action\" and \"reflection\""
+                            # "Do not include any newline characters in your response."
+                            "MUST Respond as one JSON object. Your JSON object must have exactly two keys: \"action\" and \"reflection\" : "
+                            "{'action': your action , 'reflection' : your reflection }"
                         ),
                     },
                 ],
@@ -169,7 +169,7 @@ class QwenVLAgent(object):
         messages = self.prompt_builder(
             img_str=img_str, history=self.history, master_instruction=instruction
         )
-        act_str = self.generate(messages)[0].replace("\n", "")
+        act_str = self.generate(messages)[0].strip("```").strip("json")
         print("act_str", act_str)
         
         act_str = json.loads(act_str)
