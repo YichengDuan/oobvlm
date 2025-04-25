@@ -26,7 +26,7 @@
 
 This project implements a **plug‑and‑play navigation loop** comprised of four interchangeable modules:
 
-1. **Visual Interpreter** — Extracts semantic scene representations (objects, depth, layout) from raw simulator observations.  
+1. **Visual Interpreter** — Extracts scene representations (objects, depth) from raw simulator observations.  
 2. **VLM Agent (Qwen2.5‑VL)** — Receives visual inputs + historic context to generate natural‑language‑grounded navigation actions.  
 3. **Action Interpreter** — Converts high‑level action tokens into simulator API calls.  
 4. **Simulator Wrapper** — Provides a unified interface to 3D environment
