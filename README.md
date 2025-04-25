@@ -129,6 +129,13 @@ This project is MIT Licensed. See `LICENSE` for details.
 
 ## 📚 Citation
 
-If you use this code in your research, please cite:
-
-
+If you find our work helpful, feel free to give us a cite:
+```
+@misc{oobvlm,
+    title = {Plug‑and‑Play Navigation Framework using Vision‑Language Model},
+    url = {https://github.com/YichengDuan/oobvlm},
+    author = {Yicheng Duan, Kaiyu Tang},
+    month = {April},
+    year = {2025}
+}
+```
