@@ -18,8 +18,8 @@ from habitat.utils.visualizations.utils import (
     images_to_video,
     observations_to_image,
 )
-
-from util import save_map,rgb_to_base64,depth_to_base64
+from habitat_sim.utils.common import d3_40_colors_rgb
+from util import save_map,rgb_to_base64,depth_to_base64,draw_top_down_map
 
 from agent.qwen_vl_agent import QwenVLAgent
 # from qwen_dummy import load_qwen_vl
@@ -32,7 +32,13 @@ from agent.qwen_vl_agent import QwenVLAgent
 #     - turn_right
 #    forward_step_size: 0.25
 #    turn_angle: 15
-
+ 
+os.environ["MAGNUM_LOG"] = "quiet"
+# os.environ["HABITAT_SIM_LOG"] = "quiet"
+def make_semantic(semantic_obs):
+    semantic_image = np.zeros((semantic_obs.shape[0],semantic_obs.shape[1],3),np.uint8)
+    semantic_image = np.resize(d3_40_colors_rgb[semantic_obs.flatten()%40],semantic_image.shape)
+    return semantic_image
 action_map = {
     "move_forward": HabitatSimActions.move_forward,
     "turn_left": HabitatSimActions.turn_left,
@@ -58,7 +64,7 @@ def compute_possible_path(env:habitat.Env, num_rays=9, max_distance=5.0):
     origin = np.array(agent_state.position)   # Agent's current position
     print(agent_state)
     # Get the forward direction of the agent
-    forward_vector = agent_state.rotation[:, 0]
+    forward_vector = agent_state.rotation.transform_vector(np.array([0, 0, -1]))  # Forward direction in world coordinates
                     
     candidate_endpoints = []
     # Cast rays in a span from -45° to +45° relative to forward direction
@@ -112,12 +118,11 @@ def overlay_possible_path(rgb, candidate_points, camera_intrinsics, camera_pose)
         cv2.circle(overlay_img, pt, radius=3, color=(0, 255, 0), thickness=-1)
     return overlay_img
 
-def vlm_agent_benchmark(config, num_episodes=None, save_video=False):
+def vlm_agent_benchmark(config,agent:QwenVLAgent, num_episodes=None, save_video=False):
     """
     用 Qwen2.5-VL 执行 R2R 导航任务并评估。
     """
     results_dirname = "./results/"
-    agent = QwenVLAgent(agent_specs=agent_specs)
 
     with habitat.Env(config=config) as env:
         if num_episodes is None:
@@ -138,11 +143,29 @@ def vlm_agent_benchmark(config, num_episodes=None, save_video=False):
             steps = 0
             episode_id = env.current_episode.episode_id
             print(f"Episode {episode_id} instruction: {instruction_text}")
+            
+            last_rgb_str = ""
+            last_compose_str = ""
             while not done and steps < config.habitat.environment.max_episode_steps:
-                rgb = obs["rgb"]
-                img_str = rgb_to_base64(rgb)
-                depth = obs["depth"]
-                depth_str = depth_to_base64(depth)
+                current_rgb = obs["rgb"]
+
+                # current_top_down_map = draw_top_down_map(env.get_metrics(), current_rgb.shape[0])
+                # current_output_im = np.concatenate((current_rgb, current_top_down_map), axis=1)
+                # current_compose_str = rgb_to_base64(current_output_im)
+
+                current_rgb_str = rgb_to_base64(current_rgb)
+
+                if len(last_rgb_str) == 0:
+                    last_rgb_str = current_rgb_str
+                # if len(last_compose_str) == 0:
+                #     last_compose_str = current_compose_str
+
+
+                # depth = obs["depth"]
+                # depth_str = depth_to_base64(depth)
+
+
+                
                 # # semantic = obs["semantic"]
                 # # --- Compute a possible path using ray-casting ---
                 # candidate_path = compute_possible_path(env, num_rays=9, max_distance=5.0)
@@ -155,17 +178,19 @@ def vlm_agent_benchmark(config, num_episodes=None, save_video=False):
                 # cv2.imshow("rgb_with_possible_path", rgb_with_path)
                 # cv2.waitKey(1)
                 # # visualization
-                cv2.imshow("rgb", rgb)
+                cv2.imshow("rgb", current_rgb)
                 cv2.waitKey(1)
-                
-                action_str = agent.get_action(img_str=img_str,instruction=instruction)
+                # save image
+                # cv2.imwrite(os.path.join(results_dirname, f"imgs/rgb_{episode_id}_step{steps}.jpg"), rgb)
+                action_str = agent.get_action(img_str_list=[last_rgb_str,current_rgb_str],instruction=instruction)
                 print(f"Episode {episode_id} action: {action_str}")
-                # action_str = "move_forward"
-                action = action_map.get(action_str, HabitatSimActions.stop)
                 
+                action = action_map.get(action_str, HabitatSimActions.stop)
+                # action = HabitatSimActions.stop
                 obs = env.step(action)
                 
-
+                last_rgb_str = current_rgb_str
+                # last_compose_str = current_compose_str
 
                 if env.episode_over or action == HabitatSimActions.stop:
                     done = True
@@ -198,6 +223,28 @@ def vlm_agent_benchmark(config, num_episodes=None, save_video=False):
 
     return avg_metrics
 
+def load_reults(num_episodes):
+    """
+    Load the results from the JSON file.
+    """
+    with open("./results/vlm_agent_metrics.json", "r") as f:
+        results = json.load(f)
+    distance_to_goal = 0
+    success = 0
+    spl = 0
+    for result in results:
+        distance_to_goal += result["distance_to_goal"]
+        success += result["success"]
+        spl += result["spl"]
+    avg_metrics = {
+        "distance_to_goal": distance_to_goal / num_episodes,
+        "success": success / num_episodes,
+        "spl": spl / num_episodes,
+    }
+    print(avg_metrics)
+    
+
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -208,8 +255,8 @@ def main():
         help="How many episodes to evaluate"
     )
     args = parser.parse_args()
-
-    metrics = vlm_agent_benchmark(LAB_CONFIG, num_episodes=args.num_episodes, save_video=True)
+    agent = QwenVLAgent(model_path="./model/Qwen2.5-VL-7B-Instruct",agent_specs=agent_specs)
+    metrics = vlm_agent_benchmark(LAB_CONFIG, agent=agent, num_episodes=args.num_episodes, save_video=False)
 
     print("Benchmark for Qwen2.5-VL agent:")
     for k, v in metrics.items():
@@ -218,3 +265,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    # load_reults(20)
