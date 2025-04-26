@@ -1,71 +1,71 @@
 [
   {
-    "distance_to_goal": 2.151386260986328,
+    "distance_to_goal": 2.510866641998291,
     "success": 0.0,
     "spl": 0.0
   },
   {
-    "distance_to_goal": 6.823372840881348,
+    "distance_to_goal": 2.448350429534912,
+    "success": 1.0,
+    "spl": 1.0
+  },
+  {
+    "distance_to_goal": 9.93925952911377,
     "success": 0.0,
     "spl": 0.0
   },
   {
-    "distance_to_goal": 10.900123596191406,
+    "distance_to_goal": 8.23205280303955,
     "success": 0.0,
     "spl": 0.0
   },
   {
-    "distance_to_goal": 6.680751800537109,
+    "distance_to_goal": 4.9339599609375,
     "success": 0.0,
     "spl": 0.0
   },
   {
-    "distance_to_goal": 8.142569541931152,
+    "distance_to_goal": 17.505416870117188,
     "success": 0.0,
     "spl": 0.0
   },
   {
-    "distance_to_goal": 10.54383659362793,
+    "distance_to_goal": 8.843814849853516,
     "success": 0.0,
     "spl": 0.0
   },
   {
-    "distance_to_goal": 9.070121765136719,
+    "distance_to_goal": 11.187143325805664,
     "success": 0.0,
     "spl": 0.0
   },
   {
-    "distance_to_goal": 8.452549934387207,
+    "distance_to_goal": 8.01767349243164,
     "success": 0.0,
     "spl": 0.0
   },
   {
-    "distance_to_goal": 6.554060935974121,
+    "distance_to_goal": 6.666332244873047,
     "success": 0.0,
     "spl": 0.0
   },
   {
-    "distance_to_goal": 6.934311389923096,
+    "distance_to_goal": 6.703991889953613,
     "success": 0.0,
     "spl": 0.0
   },
   {
-    "distance_to_goal": 8.527609825134277,
+    "distance_to_goal": 2.904792547225952,
     "success": 0.0,
     "spl": 0.0
   },
   {
-    "distance_to_goal": 7.84316349029541,
+    "distance_to_goal": 5.2834954261779785,
     "success": 0.0,
     "spl": 0.0
   },
   {
-    "distance_to_goal": 6.479418754577637,
-    "success": 0.0,
-    "spl": 0.0
-  },
-  {
-    "distance_to_goal": 5.975986003875732,
+    "distance_to_goal": 10.411892890930176,
     "success": 0.0,
     "spl": 0.0
   },
@@ -75,27 +75,27 @@
     "spl": 0.0
   },
   {
-    "distance_to_goal": 6.173550605773926,
+    "distance_to_goal": 9.637569427490234,
     "success": 0.0,
     "spl": 0.0
   },
   {
-    "distance_to_goal": 7.74806022644043,
+    "distance_to_goal": 7.950118064880371,
     "success": 0.0,
     "spl": 0.0
   },
   {
-    "distance_to_goal": 9.936529159545898,
+    "distance_to_goal": 8.576334953308105,
     "success": 0.0,
     "spl": 0.0
   },
   {
-    "distance_to_goal": 7.866074562072754,
+    "distance_to_goal": 9.789432525634766,
     "success": 0.0,
     "spl": 0.0
   },
   {
-    "distance_to_goal": 5.078193664550781,
+    "distance_to_goal": 3.056924343109131,
     "success": 0.0,
     "spl": 0.0
   }

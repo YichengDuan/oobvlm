@@ -151,10 +151,12 @@ class QwenVLAgent(object):
                                 f"Respond with a summary reflection base on your current state and history reflections, what do you see?"
                                 "What part of the master instruction have you done? Any obstacles? How to pass them? Your next plan?  And one action name pick from your (action space) for your current state. "
                                 "Do you achiece the reflection plan goal? If not, what should you do?"
+                                "NOT include word: addCriterion"
                                 'MUST Respond as one JSON object. Your JSON object must have exactly two keys: "action" and "reflection" : '
                                 "{'action': your action , 'reflection' : your reflection }"
                             ),
                         },
+
                     ],
                 },
             ]
@@ -175,7 +177,6 @@ class QwenVLAgent(object):
             img_str_list=img_str_list, history=self.history, master_instruction=instruction
         )
         act_str = self.generate(messages)[0].strip("```").strip("json")
-        print("act_str", act_str)
 
         try:
             act_str = json.loads(act_str)
@@ -205,7 +206,7 @@ class QwenVLAgent(object):
         image_inputs, video_inputs = process_vision_info(messages)
         inputs = self.processor(
             text=[text],
-            images=image_inputs,
+            # images=image_inputs,
             videos=video_inputs,
             padding=True,
             return_tensors="pt",
@@ -222,8 +223,9 @@ class QwenVLAgent(object):
             generated_ids_trimmed,
             skip_special_tokens=True,
             clean_up_tokenization_spaces=False,
-            top_p = 0.95,
-            temperature = 0.15,
+            top_p = 0.93,
+            temperature = 0.2,
+            batch_size=1,
         )
         # clear cache
         gc.collect()
