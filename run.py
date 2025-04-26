@@ -184,7 +184,8 @@ def vlm_agent_benchmark(config,agent:QwenVLAgent, num_episodes=None, save_video=
                 # cv2.imwrite(os.path.join(results_dirname, f"imgs/rgb_{episode_id}_step{steps}.jpg"), rgb)
                 action_str = agent.get_action(img_str_list=[last_rgb_str,current_rgb_str],instruction=instruction)
                 print(f"Episode {episode_id} action: {action_str}")
-                
+                if action_str == "stay":
+                    continue
                 action = action_map.get(action_str, HabitatSimActions.stop)
                 # action = HabitatSimActions.stop
                 obs = env.step(action)

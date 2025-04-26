@@ -177,19 +177,25 @@ class QwenVLAgent(object):
         act_str = self.generate(messages)[0].strip("```").strip("json")
         print("act_str", act_str)
 
-        act_str = json.loads(act_str)
+        try:
+            act_str = json.loads(act_str)
+            action = act_str.get("action", None)
+            reflection = act_str.get("reflection", None)
 
-        action = act_str.get("action", None)
-        reflection = act_str.get("reflection", None)
+            self.history.add(
+                {
+                    "step": self.history.current_history_length(),
+                    "action": action,
+                    "reflection": reflection,
+                }
+            )
+            return action
+        
+        except json.JSONDecodeError as e:
+            action = "stay"
+            return action
 
-        self.history.add(
-            {
-                "step": self.history.current_history_length(),
-                "action": action,
-                "reflection": reflection,
-            }
-        )
-        return action
+        
 
     def generate(self, messages):
         text = self.processor.apply_chat_template(
@@ -217,7 +223,7 @@ class QwenVLAgent(object):
             skip_special_tokens=True,
             clean_up_tokenization_spaces=False,
             top_p = 0.95,
-            temperature = 0.2,
+            temperature = 0.15,
         )
         # clear cache
         gc.collect()
