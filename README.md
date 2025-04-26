@@ -8,14 +8,9 @@
 
 - [🚀 Overview](#-overview)  
 - [🖼 Architecture](#-architecture)  
-- [✨ Features](#-features)  
-- [⚙️ Requirements](#️-requirements)  
-- [📥 Installation](#-installation)  
+- [✨ Features](#-features)   
 - [🚦 Quick Start](#-quick-start)  
 - [🛠 Configuration](#-configuration)  
-- [📁 Repository Structure](#-repository-structure)  
-- [🔍 Example Usage](#-example-usage)  
-- [📈 Evaluation](#-evaluation)  
 - [🤝 Contributing](#-contributing)  
 - [📄 License](#-license)  
 - [📚 Citation](#-citation)
@@ -51,66 +46,30 @@ History Manager maintains bidirectional context with VLM Agent.
 ## ✨ Features
 
 - 🔄 **Modular design** — swap in/out any Vision model, simulator, or planner  
-- 📊 **Persistent memory** — builds a topological Navi‑Graph for long‑horizon tasks  
+- 📊 **Persistent memory** — builds steps history for memory and refelection.
 - 💬 **Natural‑language actions** — driven by state‑of‑the-art VLM (Qwen2.5‑VL)  
 - ⚙️ **Simulator‑agnostic** —  Habitat-lab
 
 ---
 
-## ⚙️ Requirements
-
-Install dependencies:
-
-```bash
-
-```
-
----
-
-## 📥 Installation
-
-```bash
-
-```
-
----
-
 ## 🚦 Quick Start
-
-
-
+To run the evaluation: 
 ```bash
-
+python run.py
 ```
 
 ---
 
 ## 🛠 Configuration
-
-All hyperparameters live in `.default.yaml`. Key sections:
+Make one `.local.yaml` first.
+All hyperparameters live in `.local.yaml`. Key sections:
 
 ```yaml
-
+mp3d_habitat_scene_dataset_path: "<your path>/mp3d/"
+r2r_dataset_path: "<your path>/R2R_VLNCE_v1-3/val_unseen/val_unseen.json.gz"
+eval_config: 'r2r_eval.yaml'
+success_distance: 3
 ```
-
----
-
-## 📁 Repository Structure
-
-```
-
-```
-
----
-
-## 🔍 Example Usage
-
-
----
-
-## 📈 Evaluation
-
-
 ---
 
 ## 🤝 Contributing
