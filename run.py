@@ -178,8 +178,8 @@ def vlm_agent_benchmark(config,agent:QwenVLAgent, num_episodes=None, save_video=
                 # cv2.imshow("rgb_with_possible_path", rgb_with_path)
                 # cv2.waitKey(1)
                 # # visualization
-                cv2.imshow("rgb", current_rgb)
-                cv2.waitKey(1)
+                # cv2.imshow("rgb", current_rgb)
+                # cv2.waitKey(1)
                 # save image
                 # cv2.imwrite(os.path.join(results_dirname, f"imgs/rgb_{episode_id}_step{steps}.jpg"), rgb)
                 action_str = agent.get_action(img_str_list=[last_rgb_str,current_rgb_str],instruction=instruction)

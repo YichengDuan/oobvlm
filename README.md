@@ -31,7 +31,7 @@ This project implements a **plug‑and‑play navigation loop** comprised of fou
 3. **Action Interpreter** — Converts high‑level action tokens into simulator API calls.  
 4. **Simulator Wrapper** — Provides a unified interface to 3D environment
 
-A **History Manager** persistently stores timestep metadata and constructs a navigable graph of visited locations (Time‑Steps + Navi‑Graph).
+A **History Manager** persistently stores timestep metadata.
 
 ---
 
@@ -53,7 +53,7 @@ History Manager maintains bidirectional context with VLM Agent.
 - 🔄 **Modular design** — swap in/out any Vision model, simulator, or planner  
 - 📊 **Persistent memory** — builds a topological Navi‑Graph for long‑horizon tasks  
 - 💬 **Natural‑language actions** — driven by state‑of‑the-art VLM (Qwen2.5‑VL)  
-- ⚙️ **Simulator‑agnostic** —  
+- ⚙️ **Simulator‑agnostic** —  Habitat-lab
 
 ---
 
